@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="StudyHub 个人学习导航 —— 集中管理日常学习与生活常用网站，记录使用次数与最近访问。">
+<meta name="theme-color" content="#f5f7fb">
+<title>StudyHub · 个人学习导航</title>
+<link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<a class="skip-link" href="#main">跳到主要内容</a>
+
+<!-- 图标库：全站唯一 SVG symbol 来源，避免任何外部图标请求 -->
+<svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3.2" y="3.2" width="7" height="7" rx="2"/><rect x="13.8" y="3.2" width="7" height="7" rx="2"/><rect x="3.2" y="13.8" width="7" height="7" rx="2"/><rect x="13.8" y="13.8" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 3.7l2.62 5.31 5.86.85-4.24 4.14 1 5.84L12 17.09l-5.24 2.75 1-5.84-4.24-4.14 5.86-.85z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3.1 1.9"/></symbol>
+    <symbol id="i-cap" viewBox="0 0 24 24"><path d="M2.6 9.2L12 4.5l9.4 4.7L12 13.9z"/><path d="M6.3 11.5v4.1c0 1.6 2.55 2.9 5.7 2.9s5.7-1.3 5.7-2.9v-4.1"/><path d="M21.4 9.5v5.2"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="M8.8 7.4L4 12l4.8 4.6"/><path d="M15.2 7.4L20 12l-4.8 4.6"/></symbol>
+    <symbol id="i-flask" viewBox="0 0 24 24"><path d="M9.8 3.2h4.4"/><path d="M10.6 3.2v5.4L5 18.1a2 2 0 001.7 3h10.6a2 2 0 001.7-3l-5.6-9.5V3.2"/><path d="M7.5 14.4h9"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6.6C10.2 5.3 7.8 4.9 4.5 5.1v12.8c3.3-.2 5.7.2 7.5 1.5 1.8-1.3 4.2-1.7 7.5-1.5V5.1c-3.3-.2-5.7.2-7.5 1.5z"/><path d="M12 6.6v12.8"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.8 10.4L12 3.7l8.2 6.7V20a1.2 1.2 0 01-1.2 1.2h-4.2v-6.1H9.2v6.1H5a1.2 1.2 0 01-1.2-1.2z"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M19.5 14.9a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.41 1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.9"/><path d="M16.1 16.1L21 21"/></symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4.8 12h14.4"/><path d="M13.2 6l6 6-6 6"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="2.8" y="4.8" width="18.4" height="14.4" rx="3.2"/><path d="M10.4 9.1l5 2.9-5 2.9z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M10 8.5l5.6 3.5L10 15.5z"/></symbol>
+    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2.8" y="3.9" width="18.4" height="12.3" rx="2.6"/><path d="M9 20.1h6"/><path d="M12 16.2v3.9"/></symbol>
+    <symbol id="i-branch" viewBox="0 0 24 24"><circle cx="7" cy="5.8" r="2.6"/><circle cx="7" cy="18.2" r="2.6"/><circle cx="17" cy="8.2" r="2.6"/><path d="M7 8.4v7.2"/><path d="M17 10.8c0 3.1-3.2 3.4-6.3 3.6"/></symbol>
+    <symbol id="i-code-doc" viewBox="0 0 24 24"><path d="M6 3.2h7.4l4.6 4.6v13H6z"/><path d="M13.4 3.2v4.6H18"/><path d="M9.9 12.4L8.4 14.1l1.5 1.7"/><path d="M14.1 12.4l1.5 1.7-1.5 1.7"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 3.1l8.6 4.6L12 12.3 3.4 7.7z"/><path d="M3.4 12.2L12 16.8l8.6-4.6"/><path d="M3.4 16.5L12 21.1l8.6-4.6"/></symbol>
+    <symbol id="i-bug" viewBox="0 0 24 24"><rect x="7.2" y="7.4" width="9.6" height="11.4" rx="4.8"/><path d="M12 7.4V4.6"/><path d="M9.4 5.6L8 7.1"/><path d="M14.6 5.6L16 7.1"/><path d="M7.2 10.9H3.6"/><path d="M16.8 10.9h3.6"/><path d="M7.2 15.9H4.2"/><path d="M16.8 15.9h3"/></symbol>
+    <symbol id="i-atom" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.7"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4" transform="rotate(-60 12 12)"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2.2"/><path d="M10 7V3.9"/><path d="M14 7V3.9"/><path d="M10 20.1V17"/><path d="M14 20.1V17"/><path d="M7 10H3.9"/><path d="M7 14H3.9"/><path d="M20.1 10H17"/><path d="M20.1 14H17"/></symbol>
+    <symbol id="i-library" viewBox="0 0 24 24"><path d="M2.8 9.3L12 3.7l9.2 5.6"/><path d="M5.4 10.5v7.4"/><path d="M9.8 10.5v7.4"/><path d="M14.2 10.5v7.4"/><path d="M18.6 10.5v7.4"/><path d="M3 20.6h18"/></symbol>
+    <symbol id="i-file" viewBox="0 0 24 24"><path d="M6 3.2h7.2l4.8 4.8v12.8H6z"/><path d="M13.2 3.2V8H18"/><path d="M9 13h6"/><path d="M9 16.6h6"/></symbol>
+    <symbol id="i-landmark" viewBox="0 0 24 24"><path d="M12 3.1l8.2 4.5H3.8z"/><path d="M6 9.9v7"/><path d="M10 9.9v7"/><path d="M14 9.9v7"/><path d="M18 9.9v7"/><path d="M3.8 20.6h16.4"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.1"/><path d="M12 2.4v2.2"/><path d="M12 19.4v2.2"/><path d="M4.2 4.2l1.6 1.6"/><path d="M18.2 18.2l1.6 1.6"/><path d="M2.4 12h2.2"/><path d="M19.4 12h2.2"/><path d="M4.2 19.8l1.6-1.6"/><path d="M18.2 5.8l1.6-1.6"/></symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M13.4 2.6c.3 3.2 2 4.6 3.5 6.2 1.6 1.7 2.5 3.4 2.5 5.6a7.4 7.4 0 01-14.8 0c0-2.4 1-4.2 2.7-5.9.3 1.6 1 2.6 2.1 3-.2-3 .8-6.3 4-8.9z" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M4.8 12.6l4.8 4.8 9.6-10.8"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5.2v13.6"/><path d="M5.2 12h13.6"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5.4" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="18.6" cy="12" r="1.5" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4.6 19.4l4.2-.9L19.1 8.3a2.1 2.1 0 00-3-3L5.5 15.7z"/><path d="M15.3 6.1l2.7 2.7"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.8 6.9h14.4"/><path d="M9.3 6.9V4.9h5.4v2"/><path d="M6.7 6.9l.9 13.2h8.8l.9-13.2"/><path d="M10.3 10.7v5.9"/><path d="M13.7 10.7v5.9"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.2 6.2l11.6 11.6"/><path d="M17.8 6.2L6.2 17.8"/></symbol>
+  </defs>
+</svg>
+
+<header class="topbar">
+  <div class="topbar__inner">
+    <a class="brand" href="#" aria-label="StudyHub 首页">
+      <span class="brand__mark"><svg class="icon" aria-hidden="true"><use href="#i-cap"/></svg></span>
+      <span class="brand__text">
+        <span class="brand__name">StudyHub</span>
+        <span class="brand__sub">个人学习导航</span>
+      </span>
+    </a>
+
+    <div class="search" role="search">
+      <svg class="icon search__icon" aria-hidden="true"><use href="#i-search"/></svg>
+      <input class="search__input" id="search-input" type="search" readonly
+             placeholder="搜索网站、用途或标签…" aria-label="搜索网站（V0.2 开放）"
+             title="搜索功能将在 V0.2 开放">
+      <span class="search__badge">V0.2</span>
+    </div>
+
+    <div class="topbar__meta">
+      <time class="topbar__date" id="today-date"></time>
+      <button class="icon-btn" id="settings-btn" type="button" aria-label="设置" title="设置">
+        <svg class="icon" aria-hidden="true"><use href="#i-settings"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="站点导航">
+    <nav class="side-group" aria-label="我的导航">
+      <p class="side-title"><span class="side-title__bar" aria-hidden="true"></span>我的导航</p>
+      <ul class="side-list" id="nav-list">
+        <li>
+          <button class="side-item is-active" type="button" data-view="all" aria-pressed="true">
+            <svg class="icon side-item__icon" aria-hidden="true"><use href="#i-grid"/></svg>
+            <span>全部网站</span>
+          </button>
+        </li>
+        <li>
+          <button class="side-item" type="button" data-view="favorites" aria-pressed="false">
+            <svg class="icon side-item__icon" aria-hidden="true"><use href="#i-star"/></svg>
+            <span>我的收藏</span>
+          </button>
+        </li>
+        <li>
+          <button class="side-item" type="button" data-view="recent" aria-pressed="false">
+            <svg class="icon side-item__icon" aria-hidden="true"><use href="#i-clock"/></svg>
+            <span>最近访问</span>
+          </button>
+        </li>
+      </ul>
+    </nav>
+
+    <nav class="side-group" aria-label="网站分类">
+      <p class="side-title"><span class="side-title__bar" aria-hidden="true"></span>网站分类</p>
+      <ul class="side-list" id="category-list"></ul>
+    </nav>
+
+    <div class="side-note" aria-hidden="true">
+      <svg class="side-note__art" viewBox="0 0 200 96" fill="none">
+        <path d="M6 84c22-18 44-26 64-26 20 0 33 7 51 7 14 0 27-3 41-10" stroke="#dfe6f5" stroke-width="2" stroke-linecap="round"/>
+        <path d="M28 84V62l22-14 22 14v22z" fill="#e8eefb"/>
+        <path d="M70 84V48l26-17 26 17v36z" fill="#dde6f9"/>
+        <path d="M122 84V58l18-11 18 11v26z" fill="#e8eefb"/>
+        <path d="M150 24l16 6-9 4-3 9z" fill="#bcd0f7"/>
+        <path d="M118 22l28 9" stroke="#cfdcf4" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <p class="side-note__text">学习，让生活更有可能。</p>
+    </div>
+  </aside>
+
+  <main class="main" id="main">
+    <div class="main__head">
+      <div class="main__heading">
+        <h1 class="main__title" id="view-title">全部网站</h1>
+        <span class="main__count" id="view-count" aria-live="polite"></span>
+        <button class="add-btn" id="add-site-btn" type="button">
+          <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>添加网站
+        </button>
+      </div>
+      <div class="sort" role="group" aria-label="排序方式">
+        <button class="sort__btn is-active" type="button" data-sort="visits" aria-pressed="true">
+          <svg class="icon" aria-hidden="true"><use href="#i-flame"/></svg>使用次数
+        </button>
+        <button class="sort__btn" type="button" data-sort="recent" aria-pressed="false">
+          <svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>最近使用
+        </button>
+        <button class="sort__btn" type="button" data-sort="name" aria-pressed="false">
+          <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>名称
+        </button>
+      </div>
+    </div>
+
+    <section class="grid" id="site-grid" aria-label="网站列表"></section>
+
+    <div class="empty" id="empty-state" hidden>
+      <span class="empty__icon"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg></span>
+      <p class="empty__title" id="empty-title">这里还没有内容</p>
+      <p class="empty__hint" id="empty-hint"></p>
+    </div>
+
+    <section class="overview" id="overview" aria-label="概览">
+      <article class="panel">
+        <header class="panel__head">
+          <span class="panel__icon panel__icon--star"><svg class="icon" aria-hidden="true"><use href="#i-star"/></svg></span>
+          <h2 class="panel__title">我的收藏</h2>
+          <button class="panel__more" type="button" data-view="favorites">查看全部<svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+        </header>
+        <div class="panel__body" id="favorites-body"></div>
+      </article>
+
+      <article class="panel">
+        <header class="panel__head">
+          <span class="panel__icon panel__icon--clock"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg></span>
+          <h2 class="panel__title">最近访问</h2>
+          <button class="panel__more" type="button" data-view="recent">查看全部<svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></button>
+        </header>
+        <div class="panel__body" id="recent-body"></div>
+      </article>
+    </section>
+  </main>
+</div>
+
+<footer class="footer">
+  <p class="footer__line"><strong>StudyHub V0.1.1</strong><span class="footer__dot">·</span>个人学习导航<span class="footer__dot">·</span>纯静态页面<span class="footer__dot">·</span>数据保存在本地浏览器</p>
+</footer>
+
+<dialog class="dialog" id="site-dialog" aria-labelledby="dialog-title">
+  <form class="dialog__form" id="site-form" novalidate>
+    <header class="dialog__head">
+      <h2 class="dialog__title" id="dialog-title">添加网站</h2>
+      <button class="dialog__close" type="button" data-close aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </header>
+
+    <div class="dialog__body">
+      <div class="field">
+        <label class="field__label" for="f-name">网站名称<span class="field__req">*</span></label>
+        <input class="field__input" id="f-name" type="text" maxlength="30" autocomplete="off"
+               placeholder="例如：中国大学MOOC" required>
+        <p class="field__error" id="err-name" role="alert"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-url">网站网址<span class="field__req">*</span></label>
+        <input class="field__input" id="f-url" type="text" autocomplete="off" spellcheck="false"
+               placeholder="https://www.icourse163.org" required>
+        <p class="field__hint">缺少 https:// 时会自动补全</p>
+        <p class="field__error" id="err-url" role="alert"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-category">所属分类<span class="field__req">*</span></label>
+        <select class="field__input field__select" id="f-category" required></select>
+        <p class="field__error" id="err-category" role="alert"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-desc">用途说明<span class="field__optional">选填</span></label>
+        <textarea class="field__input field__textarea" id="f-desc" rows="2" maxlength="60"
+                  placeholder="一句话说明这个网站用来做什么"></textarea>
+        <p class="field__error" id="err-desc" role="alert"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="f-tags">标签<span class="field__optional">选填</span></label>
+        <input class="field__input" id="f-tags" type="text" autocomplete="off"
+               placeholder="用逗号分隔，最多 3 个">
+        <p class="field__hint">例如：课程, 公开课, 视频</p>
+        <p class="field__error" id="err-tags" role="alert"></p>
+      </div>
+    </div>
+
+    <footer class="dialog__foot">
+      <button class="btn btn--ghost" type="button" data-close>取消</button>
+      <button class="btn btn--primary" type="submit" id="site-submit">保存网站</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog class="dialog dialog--confirm" id="confirm-dialog" aria-labelledby="confirm-title">
+  <div class="dialog__body dialog__body--confirm">
+    <span class="confirm__icon" aria-hidden="true">
+      <svg class="icon"><use href="#i-trash"/></svg>
+    </span>
+    <h2 class="dialog__title" id="confirm-title">删除网站</h2>
+    <p class="confirm__text" id="confirm-text"></p>
+  </div>
+  <footer class="dialog__foot dialog__foot--center">
+    <button class="btn btn--ghost" type="button" data-close>取消</button>
+    <button class="btn btn--danger" type="button" id="confirm-delete">删除</button>
+  </footer>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="js/data.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
