@@ -5,6 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="StudyHub 个人学习导航 —— 集中管理日常学习与生活常用网站，记录使用次数与最近访问。">
 <meta name="theme-color" content="#f5f7fb">
+<script>
+  /* 首屏主题：在样式加载前读取偏好，避免深浅色闪烁 */
+  (function () {
+    try {
+      var pref = 'system';
+      var raw = localStorage.getItem('studyhub:data');
+      if (raw) {
+        var doc = JSON.parse(raw);
+        if (doc && doc.settings && doc.settings.theme) pref = doc.settings.theme;
+      }
+      var mql = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+      var dark = pref === 'dark' || (pref === 'system' && mql && mql.matches);
+      var root = document.documentElement;
+      root.setAttribute('data-theme', dark ? 'dark' : 'light');
+      root.setAttribute('data-theme-pref', pref);
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', dark ? '#0e1117' : '#f5f7fb');
+    } catch (e) {}
+  })();
+</script>
 <title>StudyHub · 个人学习导航</title>
 <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
 <link rel="stylesheet" href="css/style.css">
@@ -27,6 +47,9 @@
     <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.1"/><path d="M19.5 14.9a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 008.6 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 8.6a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.41 1z"/></symbol>
     <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.9"/><path d="M16.1 16.1L21 21"/></symbol>
     <symbol id="i-arrow-right" viewBox="0 0 24 24"><path d="M4.8 12h14.4"/><path d="M13.2 6l6 6-6 6"/></symbol>
+    <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19.2 12H4.8"/><path d="M10.8 6l-6 6 6 6"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6.5 9.5l5.5 5.5 5.5-5.5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M4.5 10.6V5.4a.9.9 0 0 1 .9-.9h5.2c.24 0 .47.1.64.26l8.1 8.1a.9.9 0 0 1 0 1.27l-5.2 5.2a.9.9 0 0 1-1.27 0l-8.1-8.1a.9.9 0 0 1-.27-.64Z"/><circle cx="8.6" cy="8.6" r="1.3" fill="currentColor" stroke="none"/></symbol>
     <symbol id="i-video" viewBox="0 0 24 24"><rect x="2.8" y="4.8" width="18.4" height="14.4" rx="3.2"/><path d="M10.4 9.1l5 2.9-5 2.9z"/></symbol>
     <symbol id="i-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"/><path d="M10 8.5l5.6 3.5L10 15.5z"/></symbol>
     <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="2.8" y="3.9" width="18.4" height="12.3" rx="2.6"/><path d="M9 20.1h6"/><path d="M12 16.2v3.9"/></symbol>
@@ -47,6 +70,10 @@
     <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4.6 19.4l4.2-.9L19.1 8.3a2.1 2.1 0 00-3-3L5.5 15.7z"/><path d="M15.3 6.1l2.7 2.7"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4.8 6.9h14.4"/><path d="M9.3 6.9V4.9h5.4v2"/><path d="M6.7 6.9l.9 13.2h8.8l.9-13.2"/><path d="M10.3 10.7v5.9"/><path d="M13.7 10.7v5.9"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.2 6.2l11.6 11.6"/><path d="M17.8 6.2L6.2 17.8"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.4" y="4.6" width="17.2" height="14.8" rx="2.6"/><circle cx="8.8" cy="9.8" r="1.6"/><path d="M4.4 17.4l4.6-4.4 3.4 3.2 2.8-2.6 4.4 4.2"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16.4V4.8"/><path d="M7.4 9.2L12 4.6l4.6 4.6"/><path d="M4.8 15.4v2.4a2 2 0 002 2h10.4a2 2 0 002-2v-2.4"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M19.2 12a7.2 7.2 0 11-2.4-5.4"/><path d="M19.4 4.8v4.2h-4.2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4.6v11.6"/><path d="M7.4 11.8l4.6 4.6 4.6-4.6"/><path d="M4.8 19.4h14.4"/></symbol>
   </defs>
 </svg>
 
@@ -62,10 +89,11 @@
 
     <div class="search" role="search">
       <svg class="icon search__icon" aria-hidden="true"><use href="#i-search"/></svg>
-      <input class="search__input" id="search-input" type="search" readonly
-             placeholder="搜索网站、用途或标签…" aria-label="搜索网站（V0.2 开放）"
-             title="搜索功能将在 V0.2 开放">
-      <span class="search__badge">V0.2</span>
+      <input class="search__input" id="search-input" type="search" autocomplete="off"
+             placeholder="搜索网站、网址、描述或标签…" aria-label="搜索网站">
+      <button class="search__clear" id="search-clear" type="button" aria-label="清除搜索" title="清除搜索" hidden>
+        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
     </div>
 
     <div class="topbar__meta">
@@ -110,12 +138,12 @@
 
     <div class="side-note" aria-hidden="true">
       <svg class="side-note__art" viewBox="0 0 200 96" fill="none">
-        <path d="M6 84c22-18 44-26 64-26 20 0 33 7 51 7 14 0 27-3 41-10" stroke="#dfe6f5" stroke-width="2" stroke-linecap="round"/>
-        <path d="M28 84V62l22-14 22 14v22z" fill="#e8eefb"/>
-        <path d="M70 84V48l26-17 26 17v36z" fill="#dde6f9"/>
-        <path d="M122 84V58l18-11 18 11v26z" fill="#e8eefb"/>
-        <path d="M150 24l16 6-9 4-3 9z" fill="#bcd0f7"/>
-        <path d="M118 22l28 9" stroke="#cfdcf4" stroke-width="2" stroke-linecap="round"/>
+        <path class="art-line" d="M6 84c22-18 44-26 64-26 20 0 33 7 51 7 14 0 27-3 41-10" stroke="#dfe6f5" stroke-width="2" stroke-linecap="round"/>
+        <path class="art-wall" d="M28 84V62l22-14 22 14v22z" fill="#e8eefb"/>
+        <path class="art-wall-2" d="M70 84V48l26-17 26 17v36z" fill="#dde6f9"/>
+        <path class="art-wall" d="M122 84V58l18-11 18 11v26z" fill="#e8eefb"/>
+        <path class="art-plane" d="M150 24l16 6-9 4-3 9z" fill="#bcd0f7"/>
+        <path class="art-line" d="M118 22l28 9" stroke="#cfdcf4" stroke-width="2" stroke-linecap="round"/>
       </svg>
       <p class="side-note__text">学习，让生活更有可能。</p>
     </div>
@@ -140,6 +168,31 @@
         <button class="sort__btn" type="button" data-sort="name" aria-pressed="false">
           <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>名称
         </button>
+      </div>
+    </div>
+
+    <div class="tag-filter" id="tag-filter" hidden>
+      <div class="tag-filter__head">
+        <button class="tag-filter__toggle" id="tag-filter-toggle" type="button"
+                aria-expanded="false" aria-controls="tag-filter-body">
+          <svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg>
+          <span id="tag-filter-toggle-text">标签筛选</span>
+          <span class="tag-filter__count" id="tag-filter-count" hidden></span>
+          <svg class="icon tag-filter__chevron" aria-hidden="true"><use href="#i-chevron-down"/></svg>
+        </button>
+        <div class="tag-filter__selected" id="tag-filter-selected"></div>
+        <button class="tag-filter__clear" id="tag-filter-clear" type="button" hidden>清除全部</button>
+      </div>
+      <div class="tag-filter__body" id="tag-filter-body" hidden>
+        <div class="tag-filter__tools">
+          <label class="tag-filter__search">
+            <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+            <input id="tag-search" type="search" autocomplete="off" placeholder="搜索标签…" aria-label="搜索标签">
+          </label>
+          <span class="tag-filter__meta" id="tag-filter-meta"></span>
+          <button class="tag-filter__showall" id="tag-filter-showall" type="button" hidden></button>
+        </div>
+        <div class="tag-filter__list" id="tag-filter-list" role="group" aria-label="按标签筛选"></div>
       </div>
     </div>
 
@@ -173,7 +226,161 @@
   </main>
 </div>
 
-<footer class="footer">
+<div class="settings" id="settings-view" hidden>
+  <div class="settings__inner">
+    <aside class="settings__side">
+      <a class="settings__back" href="#/">
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"/></svg>返回主页
+      </a>
+      <nav class="settings__nav" id="settings-nav" aria-label="设置">
+        <button class="settings__nav-item" type="button" data-settings-tab="appearance">
+          <svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg>外观
+        </button>
+        <button class="settings__nav-item" type="button" data-settings-tab="display">
+          <svg class="icon" aria-hidden="true"><use href="#i-monitor"/></svg>网站显示
+        </button>
+        <button class="settings__nav-item is-active" type="button" data-settings-tab="categories">
+          <svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg>分类管理
+        </button>
+        <button class="settings__nav-item" type="button" data-settings-tab="tags">
+          <svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>标签管理
+        </button>
+        <button class="settings__nav-item" type="button" data-settings-tab="data">
+          <svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>数据管理
+        </button>
+        <button class="settings__nav-item" type="button" data-settings-tab="about">
+          <svg class="icon" aria-hidden="true"><use href="#i-cap"/></svg>关于 StudyHub
+        </button>
+      </nav>
+    </aside>
+
+    <div class="settings__content">
+      <header class="settings__head">
+        <h1 class="settings__title" id="settings-title">分类管理</h1>
+        <p class="settings__desc" id="settings-desc">调整主页面左侧的分类顺序，也可以新增或删除分类。</p>
+      </header>
+
+      <section class="settings__panel" id="settings-panel-appearance" hidden>
+        <div class="theme-options" role="radiogroup" aria-label="主题模式">
+          <button class="theme-card" type="button" role="radio" aria-checked="false" data-theme-choice="light">
+            <span class="theme-thumb theme-thumb--light" aria-hidden="true"></span>
+            <span class="theme-card__body">
+              <span class="theme-card__label">浅色模式</span>
+              <span class="theme-card__hint">始终使用明亮界面</span>
+            </span>
+            <span class="theme-card__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span>
+          </button>
+          <button class="theme-card" type="button" role="radio" aria-checked="false" data-theme-choice="dark">
+            <span class="theme-thumb theme-thumb--dark" aria-hidden="true"></span>
+            <span class="theme-card__body">
+              <span class="theme-card__label">深色模式</span>
+              <span class="theme-card__hint">降低夜间屏幕亮度</span>
+            </span>
+            <span class="theme-card__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span>
+          </button>
+          <button class="theme-card" type="button" role="radio" aria-checked="false" data-theme-choice="system">
+            <span class="theme-thumb theme-thumb--system" aria-hidden="true"></span>
+            <span class="theme-card__body">
+              <span class="theme-card__label">跟随系统</span>
+              <span class="theme-card__hint">随系统自动切换</span>
+            </span>
+            <span class="theme-card__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span>
+          </button>
+        </div>
+        <p class="theme-status" id="theme-status">当前跟随系统：浅色</p>
+        <p class="theme-note">主题偏好保存在本机浏览器中，不会改变任何网站数据。</p>
+      </section>
+
+      <section class="settings__panel" id="settings-panel-categories">
+        <div class="cat-admin__bar">
+          <p class="cat-admin__hint">用上下箭头或拖拽调整顺序；删除分类时可把其中的网站迁移到其他分类。</p>
+          <button class="btn btn--primary" id="add-category-btn" type="button">
+            <svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>新增分类
+          </button>
+        </div>
+        <ul class="cat-admin" id="category-admin-list"></ul>
+      </section>
+
+      <section class="settings__panel" id="settings-panel-tags" hidden>
+        <div class="cat-admin__bar">
+          <p class="cat-admin__hint">标签来自各网站的「标签」字段，重命名会全局替换，删除会从所有网站中移除。</p>
+        </div>
+        <ul class="tag-admin" id="tag-admin-list"></ul>
+        <div class="panel__empty" id="tag-admin-empty" hidden>
+          <span class="panel__empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-tag"/></svg></span>
+          <p class="panel__empty-title">还没有任何标签</p>
+          <p class="panel__empty-hint">在添加或编辑网站时填写标签，这里会自动汇总。</p>
+        </div>
+      </section>
+
+      <section class="settings__panel" id="settings-panel-data" hidden>
+        <div class="data-admin">
+          <p class="data-readonly" id="data-readonly" hidden>只读模式：可以导出备份，但暂时不能导入或恢复。</p>
+          <div class="data-stats" aria-label="数据概况">
+            <div class="data-stat">
+              <span class="data-stat__num" id="data-site-count">0</span>
+              <span class="data-stat__label">网站</span>
+            </div>
+            <div class="data-stat">
+              <span class="data-stat__num" id="data-category-count">0</span>
+              <span class="data-stat__label">分类</span>
+            </div>
+            <div class="data-stat">
+              <span class="data-stat__num" id="data-icon-count">0</span>
+              <span class="data-stat__label">上传图片</span>
+            </div>
+          </div>
+
+          <div class="data-block">
+            <div class="data-block__head">
+              <div>
+                <h2 class="data-block__title">导出备份</h2>
+                <p class="data-block__hint">包含全部网站、分类、设置与上传的图标图片，保存为一个 JSON 文件。</p>
+              </div>
+              <button class="btn btn--primary data-block__action" id="export-backup-btn" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>导出完整备份
+              </button>
+            </div>
+          </div>
+
+          <div class="data-block">
+            <div class="data-block__head">
+              <div>
+                <h2 class="data-block__title">导入与恢复</h2>
+                <p class="data-block__hint">选择之前导出的备份文件。恢复会用备份内容替换当前全部数据，操作前会先为你导出一份当前数据的备份。</p>
+              </div>
+              <button class="btn data-block__action" id="choose-backup-btn" type="button">
+                <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>选择备份文件
+              </button>
+              <input type="file" id="backup-file-input" accept=".json,application/json" hidden>
+            </div>
+
+            <div class="data-file" id="data-file" hidden>
+              <div class="data-file__info">
+                <p class="data-file__name" id="data-file-name"></p>
+                <p class="data-file__meta" id="data-file-meta"></p>
+              </div>
+              <button class="btn btn--primary data-file__action" id="restore-backup-btn" type="button">恢复此备份</button>
+              <button class="btn btn--ghost data-file__action" id="clear-backup-btn" type="button">清除选择</button>
+            </div>
+            <p class="data-error" id="data-error" hidden></p>
+          </div>
+
+        </div>
+      </section>
+
+      <section class="settings__panel" id="settings-panel-coming" hidden>
+        <div class="panel__empty">
+          <span class="panel__empty-icon"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg></span>
+          <p class="panel__empty-title" id="coming-title">该模块尚未开放</p>
+          <p class="panel__empty-hint" id="coming-text">会在后续版本中开放，请先使用分类管理。</p>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<footer class="footer" id="site-footer">
   <p class="footer__line"><strong>StudyHub V0.1.1</strong><span class="footer__dot">·</span>个人学习导航<span class="footer__dot">·</span>纯静态页面<span class="footer__dot">·</span>数据保存在本地浏览器</p>
 </footer>
 
@@ -217,10 +424,42 @@
 
       <div class="field">
         <label class="field__label" for="f-tags">标签<span class="field__optional">选填</span></label>
-        <input class="field__input" id="f-tags" type="text" autocomplete="off"
-               placeholder="用逗号分隔，最多 3 个">
-        <p class="field__hint">例如：课程, 公开课, 视频</p>
+        <input class="field__input" id="f-tags" type="text" autocomplete="off" maxlength="120"
+               placeholder="用逗号或分号分隔，最多 5 个">
+        <p class="field__hint">每个标签不超过 12 个字符，空格会保留在标签内</p>
         <p class="field__error" id="err-tags" role="alert"></p>
+      </div>
+
+      <div class="field">
+        <span class="field__label" id="icon-label">网站图标<span class="field__optional">选填</span></span>
+        <div class="icon-picker" role="group" aria-labelledby="icon-label">
+          <div class="icon-picker__preview" id="icon-preview" aria-hidden="true">
+            <svg class="icon"><use href="#i-grid"/></svg>
+          </div>
+          <div class="icon-picker__main">
+            <div class="seg" id="icon-sources">
+              <button class="seg__btn" type="button" data-icon-source="auto" aria-pressed="false">自动获取</button>
+              <button class="seg__btn" type="button" data-icon-source="url" aria-pressed="false">图片链接</button>
+              <button class="seg__btn" type="button" data-icon-source="upload" aria-pressed="false">本地上传</button>
+            </div>
+            <p class="icon-picker__hint" id="icon-hint"></p>
+            <div class="icon-picker__panel" id="icon-panel-url" hidden>
+              <input class="field__input" id="f-icon-url" type="text" inputmode="url" autocomplete="off"
+                     spellcheck="false" placeholder="https://example.com/icon.png">
+            </div>
+            <div class="icon-picker__panel" id="icon-panel-upload" hidden>
+              <input type="file" id="f-icon-file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden>
+              <button class="btn btn--ghost icon-upload" type="button" id="icon-upload-btn">
+                <svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>选择图片
+              </button>
+              <span class="icon-picker__file" id="icon-file-name">PNG / JPG / WebP，不超过 2MB</span>
+            </div>
+            <button class="link-btn" type="button" id="icon-reset">
+              <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>恢复默认图标
+            </button>
+          </div>
+        </div>
+        <p class="field__error" id="err-icon" role="alert"></p>
       </div>
     </div>
 
@@ -245,10 +484,121 @@
   </footer>
 </dialog>
 
+<dialog class="dialog dialog--confirm" id="restore-dialog" aria-labelledby="restore-title">
+  <div class="dialog__body dialog__body--confirm">
+    <span class="confirm__icon" aria-hidden="true">
+      <svg class="icon"><use href="#i-refresh"/></svg>
+    </span>
+    <h2 class="dialog__title" id="restore-title">恢复备份</h2>
+    <p class="confirm__text" id="restore-text"></p>
+    <dl class="restore-summary" id="restore-summary"></dl>
+    <p class="restore-warning">恢复会替换当前全部网站、分类、设置和上传的图片；开始前会自动导出一份当前数据。</p>
+  </div>
+  <footer class="dialog__foot dialog__foot--center">
+    <button class="btn btn--ghost" type="button" data-close>取消</button>
+    <button class="btn btn--danger" type="button" id="restore-confirm">确认恢复</button>
+  </footer>
+</dialog>
+
+<dialog class="dialog" id="category-dialog" aria-labelledby="category-dialog-title">
+  <form class="dialog__form" id="category-form" novalidate>
+    <header class="dialog__head">
+      <h2 class="dialog__title" id="category-dialog-title">新增分类</h2>
+      <button class="dialog__close" type="button" data-close aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </header>
+
+    <div class="dialog__body">
+      <div class="field">
+        <label class="field__label" for="c-name">分类名称<span class="field__req">*</span></label>
+        <input class="field__input" id="c-name" type="text" maxlength="20" autocomplete="off"
+               placeholder="例如：考研资料" required>
+        <p class="field__error" id="err-c-name" role="alert"></p>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="c-icon">分类图标</label>
+        <select class="field__input field__select" id="c-icon"></select>
+      </div>
+
+      <div class="field">
+        <label class="field__label" for="c-color">主题颜色</label>
+        <div class="color-field">
+          <input class="color-field__input" id="c-color" type="color" value="#2f6bff">
+          <span class="color-field__text">用于左侧导航与卡片强调色</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="dialog__foot">
+      <button class="btn btn--ghost" type="button" data-close>取消</button>
+      <button class="btn btn--primary" type="submit" id="category-submit">保存分类</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog class="dialog dialog--confirm" id="category-delete-dialog" aria-labelledby="category-delete-title">
+  <div class="dialog__body dialog__body--confirm">
+    <span class="confirm__icon" aria-hidden="true">
+      <svg class="icon"><use href="#i-trash"/></svg>
+    </span>
+    <h2 class="dialog__title" id="category-delete-title">删除分类</h2>
+    <p class="confirm__text" id="category-delete-text"></p>
+    <div class="field field--inline" id="category-migrate-field" hidden>
+      <label class="field__label" for="category-migrate">把其中的网站迁移到</label>
+      <select class="field__input field__select" id="category-migrate"></select>
+      <p class="field__error" id="err-category-migrate" role="alert"></p>
+    </div>
+  </div>
+  <footer class="dialog__foot dialog__foot--center">
+    <button class="btn btn--ghost" type="button" data-close>取消</button>
+    <button class="btn btn--danger" type="button" id="category-delete-confirm">删除分类</button>
+  </footer>
+</dialog>
+
+<dialog class="dialog" id="tag-dialog" aria-labelledby="tag-dialog-title">
+  <form class="dialog__form" id="tag-form" novalidate>
+    <header class="dialog__head">
+      <h2 class="dialog__title" id="tag-dialog-title">重命名标签</h2>
+      <button class="dialog__close" type="button" data-close aria-label="关闭">
+        <svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>
+      </button>
+    </header>
+    <div class="dialog__body">
+      <div class="field">
+        <label class="field__label" for="t-name">标签名称<span class="field__req">*</span></label>
+        <input class="field__input" id="t-name" type="text" maxlength="12" autocomplete="off" required>
+        <p class="field__hint">重命名后，所有使用该标签的网站会同步更新。</p>
+        <p class="field__error" id="err-t-name" role="alert"></p>
+      </div>
+    </div>
+    <footer class="dialog__foot">
+      <button class="btn btn--ghost" type="button" data-close>取消</button>
+      <button class="btn btn--primary" type="submit" id="tag-submit">保存标签</button>
+    </footer>
+  </form>
+</dialog>
+
+<dialog class="dialog dialog--confirm" id="tag-delete-dialog" aria-labelledby="tag-delete-title">
+  <div class="dialog__body dialog__body--confirm">
+    <span class="confirm__icon" aria-hidden="true">
+      <svg class="icon"><use href="#i-trash"/></svg>
+    </span>
+    <h2 class="dialog__title" id="tag-delete-title">删除标签</h2>
+    <p class="confirm__text" id="tag-delete-text"></p>
+  </div>
+  <footer class="dialog__foot dialog__foot--center">
+    <button class="btn btn--ghost" type="button" data-close>取消</button>
+    <button class="btn btn--danger" type="button" id="tag-delete-confirm">删除标签</button>
+  </footer>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="js/data.js"></script>
 <script src="js/store.js"></script>
+<script src="js/icons.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>
