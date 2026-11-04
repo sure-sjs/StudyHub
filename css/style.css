@@ -1129,3 +1129,59 @@ html.is-locked { overflow: hidden; }
     scroll-behavior: auto !important;
   }
 }
+
+/* 15. 只读状态横幅 ------------------------------------------------------- */
+.readonly-bar {
+  position: sticky;
+  top: var(--header-h);
+  z-index: 30;
+  background: #fff7e6;
+  border-bottom: 1px solid #f3e2c0;
+  color: #7a5410;
+}
+.readonly-bar__inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 9px 24px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.readonly-bar__icon {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  color: #c68a1c;
+}
+.readonly-bar__icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.readonly-bar__title {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.readonly-bar__desc {
+  font-size: 13px;
+  color: #8a6420;
+  min-width: 0;
+}
+.readonly-bar--error {
+  background: #fff1f1;
+  border-bottom-color: #f6d5d5;
+}
+.readonly-bar--error .readonly-bar__icon { color: #d24a4a; }
+.readonly-bar--error .readonly-bar__title { color: #a52b2b; }
+.readonly-bar--error .readonly-bar__desc { color: #a84343; }
+
+@media (max-width: 560px) {
+  .readonly-bar__inner { padding: 9px 16px; gap: 7px; }
+  .readonly-bar__desc { font-size: 12.5px; }
+}

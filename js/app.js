@@ -2,12 +2,13 @@
  * StudyHub V0.1.1 —— 页面逻辑
  * ------------------------------------------------------------------
  * 职责划分：
- *   data.js  提供「预置数据」，仅在该浏览器第一次打开时写入本地存储
- *   本文件   负责本地数据的读写、网站增删改、筛选、排序、渲染与交互
+ *   data.js  提供「预置数据」，仅在浏览器首次初始化时作为种子
+ *   store.js 负责持久化层（校验、迁移、备份、读写）
+ *   本文件   负责界面、筛选、排序、渲染与交互
  *
  * 数据流：
- *   localStorage(studyhub:v1) ── 完整站点列表（含访问次数/时间/收藏）
- *   data.js(预置数据) ─────────┘ 首次打开时作为种子
+ *   SH.store.init() ── 读取/迁移得到 v3 文档，暴露 state.document
+ *   本文件只读 doc / sites，所有写入先构造副本再交给 SH.store.save()
  *
  * 只使用普通 script，不依赖 ES Module 与 fetch。
  * ------------------------------------------------------------------
@@ -18,8 +19,6 @@
   var DATA = window.STUDYHUB_DATA;
   if (!DATA || !Array.isArray(DATA.sites)) { return; }
 
-  var STORAGE_KEY = (DATA.meta && DATA.meta.storageKey) || 'studyhub:v1';
-  var STORE_VERSION = 2;
   var PANEL_ROWS = 4;
   var MAX_NAME = 30;
   var MAX_DESC = 60;
@@ -37,11 +36,14 @@
   var WEEKDAYS = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
 
   var state = { view: 'all', sort: 'visits' };
-  var store = null;
+  var api = null;
+  var doc = null;
+  var readOnly = false;
+  var readOnlyMessage = '';
+  var readOnlyBar = null;
   var sites = [];
   var categoryMap = {};
   var collator = null;
-  var storageFailed = false;
   var toastTimer = 0;
   var editingId = null;
   var pendingDeleteId = null;
@@ -86,8 +88,7 @@
       : null;
 
     indexCategories();
-    store = loadStore();
-    sites = store.sites;
+    bootStore();
 
     renderDate();
     renderCategories();
@@ -95,6 +96,10 @@
     bindEvents();
 
     renderAll();
+
+    if (readOnly) {
+      showToast(readOnlyMessage || '只读模式：本地数据受保护，暂不能修改');
+    }
   }
 
   /* ------------------------------------------------------------ 数据层 */
@@ -105,102 +110,154 @@
     });
   }
 
-  function defaultRecord(site) {
-    var hours = typeof site.seededHoursAgo === 'number' ? site.seededHoursAgo : null;
-    return {
-      visits: Math.max(0, parseInt(site.initialVisits, 10) || 0),
-      lastUsed: hours === null ? null : Date.now() - hours * 3600 * 1000,
-      favorite: false
-    };
+  /** 只调用一次 SH.store.init()，之后所有写入都走 store.save() */
+  function bootStore() {
+    api = window.SH && window.SH.store ? window.SH.store : null;
+    if (!api) {
+      doc = null;
+      sites = [];
+      readOnly = true;
+      readOnlyMessage = '数据模块未加载，页面进入只读模式';
+      return;
+    }
+
+    var boot = null;
+    try {
+      boot = api.init({ seed: DATA });
+    } catch (err) {
+      boot = null;
+    }
+
+    doc = boot && boot.doc ? boot.doc : null;
+    sites = doc && Array.isArray(doc.sites) ? doc.sites : [];
+    readOnly = !boot || boot.mode !== 'normal';
+    readOnlyMessage = boot ? String(boot.message || boot.reason || '') : '';
+
+    if (readOnly && !doc) {
+      readOnlyMessage = '本地数据无法读取，已进入只读模式';
+    } else if (readOnly && readOnlyMessage && readOnlyMessage.indexOf('只读') < 0) {
+      readOnlyMessage = '只读模式：' + readOnlyMessage;
+    } else if (readOnly && !readOnlyMessage) {
+      readOnlyMessage = '只读模式：本地数据受保护，暂不能修改';
+    }
+    if (readOnly) {
+      applyReadOnlyState();
+    }
   }
 
-  /** 把任意来源的站点整理成统一结构 */
-  function normalizeSite(base, rec) {
-    rec = rec || {};
-    var tags = Array.isArray(base.tags) ? base.tags : [];
-    return {
-      id: String(base.id || uid()),
-      name: String(base.name || '').slice(0, MAX_NAME),
-      desc: String(base.desc || '').slice(0, MAX_DESC),
-      url: safeUrl(rec.url || base.url),
-      category: categoryMap[base.category] ? base.category : 'course',
-      icon: safeIcon(base.icon),
-      color: safeColor(base.color),
-      tags: tags.slice(0, MAX_TAGS).map(function (tag) { return String(tag).slice(0, MAX_TAG_LEN); }),
-      visits: Math.max(0, parseInt(rec.visits, 10) || 0),
-      lastUsed: typeof rec.lastUsed === 'number' ? rec.lastUsed : null,
-      favorite: !!rec.favorite
-    };
+  /** 候选文档：与已提交文档完全隔离的深拷贝 */
+  function cloneDoc(value) {
+    return value ? JSON.parse(JSON.stringify(value)) : null;
   }
 
-  function seedSites() {
-    return DATA.sites.map(function (base) {
-      return normalizeSite(base, defaultRecord(base));
-    });
-  }
-
-  /** v1（基础信息 + 记录分离）→ v2（完整站点列表） */
-  function migrateStore(raw) {
-    if (raw && raw.version === 1 && raw.sites && !Array.isArray(raw.sites)) {
-      var list = DATA.sites.map(function (base) {
-        return normalizeSite(base, raw.sites[base.id]);
-      });
-      return list.length ? list : null;
+  function findSiteIn(list, id) {
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === id) { return list[i]; }
     }
     return null;
   }
 
-  function loadStore() {
-    var raw = readStorage();
-    if (raw && raw.version === STORE_VERSION && Array.isArray(raw.sites)) {
-      raw.sites = raw.sites.map(function (site) { return normalizeSite(site, site); });
-      return raw;
-    }
-
-    var migrated = migrateStore(raw);
-    var fresh = {
-      version: STORE_VERSION,
-      updatedAt: Date.now(),
-      sites: migrated || seedSites()
-    };
-    writeStorage(fresh);
-    return fresh;
-  }
-
-  function readStorage() {
-    try {
-      var text = window.localStorage.getItem(STORAGE_KEY);
-      return text ? JSON.parse(text) : null;
-    } catch (err) {
-      return null;
-    }
-  }
-
-  function writeStorage(value) {
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value));
-      return true;
-    } catch (err) {
-      storageFailed = true;
+  /**
+   * 提交候选文档。成功前不触碰 doc/sites，失败时内存状态保持原样。
+   */
+  function commit(candidate) {
+    if (!api || readOnly) {
+      notifyReadOnly();
       return false;
     }
+
+    var saved = api.save(candidate);
+    if (!saved || !saved.ok) {
+      var code = saved ? saved.code : '';
+      if (code === 'READONLY') {
+        readOnly = true;
+        readOnlyMessage = (saved && saved.message) || '数据校验未通过，已进入只读模式';
+        applyReadOnlyState();
+        notifyReadOnly();
+      } else if (code === 'QUOTA') {
+        showToast('本地存储空间不足，本次修改未保存');
+      } else if (code === 'SCHEMA') {
+        showToast('数据校验未通过，本次修改未保存');
+      } else {
+        showToast('保存失败，本次修改未生效');
+      }
+      return false;
+    }
+
+    doc = saved.doc;
+    sites = doc.sites;
+    return true;
   }
 
-  function persist() {
-    if (!store) { return; }
-    store.updatedAt = Date.now();
-    if (!writeStorage(store) && !storageFailed) { storageFailed = true; }
-    if (storageFailed) {
-      showToast('浏览器禁止本地存储，本次记录将无法保存');
-      storageFailed = false; // 只提示一次
+  function applyReadOnlyState() {
+    if (els.addBtn) {
+      els.addBtn.disabled = true;
+      els.addBtn.setAttribute('aria-disabled', 'true');
+      els.addBtn.title = readOnlyMessage || '只读模式';
+      els.addBtn.style.opacity = '0.55';
+      els.addBtn.style.cursor = 'not-allowed';
     }
+    syncReadOnlyBar();
+  }
+
+  /** 只读横幅：不写入任何数据，仅在页面顶部提示当前状态 */
+  function syncReadOnlyBar() {
+    var header = document.querySelector('.topbar');
+
+    if (!readOnly) {
+      if (readOnlyBar && readOnlyBar.parentNode) {
+        readOnlyBar.parentNode.removeChild(readOnlyBar);
+      }
+      readOnlyBar = null;
+      return;
+    }
+
+    if (!header) { return; }
+
+    var broken = !doc;
+    if (!readOnlyBar) {
+      readOnlyBar = document.createElement('div');
+      readOnlyBar.id = 'readonly-bar';
+      readOnlyBar.className = 'readonly-bar';
+      readOnlyBar.setAttribute('role', 'status');
+      readOnlyBar.setAttribute('aria-live', 'polite');
+      readOnlyBar.innerHTML =
+        '<div class="readonly-bar__inner">' +
+          '<span class="readonly-bar__icon" aria-hidden="true">' +
+            '<svg viewBox="0 0 24 24">' +
+              '<rect x="4.8" y="10.4" width="14.4" height="9.6" rx="2.4"/>' +
+              '<path d="M8.4 10.4V8a3.6 3.6 0 0 1 7.2 0v2.4"/>' +
+            '</svg>' +
+          '</span>' +
+          '<strong class="readonly-bar__title"></strong>' +
+          '<span class="readonly-bar__desc"></span>' +
+        '</div>';
+      header.insertAdjacentElement('afterend', readOnlyBar);
+    }
+
+    var titleEl = readOnlyBar.querySelector('.readonly-bar__title');
+    var descEl = readOnlyBar.querySelector('.readonly-bar__desc');
+    var title = broken ? '数据读取异常' : '只读模式';
+    var desc = broken
+      ? '本地数据无法读取，已进入只读模式；现有数据不会被修改。请检查浏览器存储权限，或稍后从备份恢复。'
+      : stripReadOnlyPrefix(readOnlyMessage) || '本地数据受保护，暂不能修改。网站仍可正常打开与浏览。';
+
+    readOnlyBar.className = 'readonly-bar' + (broken ? ' readonly-bar--error' : '');
+    titleEl.textContent = title;
+    descEl.textContent = desc;
+    readOnlyBar.title = readOnlyMessage || title;
+  }
+
+  function stripReadOnlyPrefix(message) {
+    return String(message || '').replace(/^只读模式[：:]\s*/, '');
+  }
+
+  function notifyReadOnly() {
+    showToast(readOnlyMessage || '只读模式：本地数据受保护，暂不能修改');
   }
 
   function findSite(id) {
-    for (var i = 0; i < sites.length; i++) {
-      if (sites[i].id === id) { return sites[i]; }
-    }
-    return null;
+    return findSiteIn(sites, id);
   }
 
   /* ------------------------------------------------------------ 视图层 */
@@ -254,6 +311,12 @@
   }
 
   function showEmpty() {
+    if (readOnly && !doc) {
+      els.emptyTitle.textContent = '本地数据无法读取';
+      els.emptyHint.textContent = '已进入只读模式，页面不会写入任何数据。请恢复浏览器本地数据后刷新重试。';
+      els.empty.hidden = false;
+      return;
+    }
     var copy = EMPTY_STATES[state.view] || EMPTY_STATES.category;
     els.emptyTitle.textContent = copy.title;
     els.emptyHint.textContent = copy.hint;
@@ -265,7 +328,7 @@
     return '<article class="card" data-site-id="' + escapeAttr(site.id) + '" style="--accent:' + site.color + '">' +
       '<div class="card__head">' +
         '<span class="card__icon" aria-hidden="true">' +
-          '<svg class="icon"><use href="#' + site.icon + '"/></svg>' +
+          '<svg class="icon"><use href="#' + iconSymbol(site) + '"/></svg>' +
         '</span>' +
         '<h3 class="card__title" title="' + escapeAttr(site.name) + '">' + escapeHtml(site.name) + '</h3>' +
         '<div class="card__tools">' +
@@ -361,7 +424,7 @@
       ' data-action="visit" data-site-id="' + escapeAttr(site.id) + '"' +
       ' aria-label="打开 ' + escapeAttr(site.name) + '（新标签页）" style="--accent:' + site.color + '">' +
         '<span class="mini__icon" aria-hidden="true">' +
-          '<svg class="icon"><use href="#' + site.icon + '"/></svg>' +
+          '<svg class="icon"><use href="#' + iconSymbol(site) + '"/></svg>' +
         '</span>' +
         '<span class="mini__name">' + escapeHtml(site.name) + '</span>' +
         (timeText ? '<span class="mini__time">' + escapeHtml(timeText) + '</span>' : '') +
@@ -538,13 +601,20 @@
   }
 
   function recordVisit(id) {
+    if (readOnly) { return; } // 只读：仍允许打开网站，只是不记录
+
+    var candidate = cloneDoc(doc);
+    var target = candidate ? findSiteIn(candidate.sites, id) : null;
+    if (!target) { return; }
+
+    var now = Date.now();
+    target.visits = (parseInt(target.visits, 10) || 0) + 1;
+    target.lastUsed = now;
+    target.updatedAt = now;
+    if (!commit(candidate)) { return; }
+
     var site = findSite(id);
     if (!site) { return; }
-
-    site.visits = (parseInt(site.visits, 10) || 0) + 1;
-    site.lastUsed = Date.now();
-    persist();
-
     updateCardVisits(id, site.visits);
     renderOverview();
 
@@ -565,12 +635,18 @@
   }
 
   function toggleFavorite(id) {
+    if (readOnly) { notifyReadOnly(); return; }
+
+    var candidate = cloneDoc(doc);
+    var target = candidate ? findSiteIn(candidate.sites, id) : null;
+    if (!target) { return; }
+
+    target.favorite = !target.favorite;
+    target.updatedAt = Date.now();
+    if (!commit(candidate)) { return; }
+
     var site = findSite(id);
     if (!site) { return; }
-
-    site.favorite = !site.favorite;
-    persist();
-
     var card = els.grid.querySelector('[data-site-id="' + cssEscape(id) + '"]');
     var btn = card ? card.querySelector('[data-action="favorite"]') : null;
     if (btn) {
@@ -599,6 +675,7 @@
 
   function openSiteForm(mode, id) {
     if (!els.siteDialog) { return; }
+    if (readOnly) { notifyReadOnly(); return; }
     editingId = null;
     clearFormErrors();
 
@@ -627,6 +704,7 @@
 
   function onFormSubmit(event) {
     event.preventDefault();
+    if (readOnly) { notifyReadOnly(); return; }
 
     var data = {
       name: els.fName.value.trim(),
@@ -643,32 +721,55 @@
 
     var cat = categoryMap[data.category];
     var isEdit = !!editingId;
-    var site = isEdit ? findSite(editingId) : null;
+    var candidate = cloneDoc(doc);
+    if (!candidate) { showToast('数据未就绪，本次修改未保存'); return; }
 
-    if (isEdit && site) {
-      if (site.category !== data.category) {
-        site.category = data.category;
-        site.icon = safeIcon(cat.icon);
-        site.color = safeColor(cat.color);
+    var target = isEdit ? findSiteIn(candidate.sites, editingId) : null;
+    if (isEdit && !target) {
+      showToast('要修改的网站已不存在');
+      closeDialog(els.siteDialog);
+      editingId = null;
+      renderAll();
+      return;
+    }
+
+    var now = Date.now();
+    if (isEdit) {
+      if (target.category !== data.category) {
+        target.category = data.category;
+        target.icon = { source: 'builtin', symbol: safeIcon(cat.icon), url: '', imageId: '' };
+        target.color = safeColor(cat.color);
       }
-      site.name = data.name;
-      site.desc = data.desc;
-      site.url = result.url;
-      site.tags = result.tags;
+      target.name = data.name;
+      target.desc = data.desc;
+      target.url = result.url;
+      target.tags = result.tags;
+      target.updatedAt = now;
     } else {
-      sites.push(normalizeSite({
+      var maxOrder = 0;
+      candidate.sites.forEach(function (item) {
+        if (typeof item.order === 'number' && item.order > maxOrder) { maxOrder = item.order; }
+      });
+      candidate.sites.push({
         id: uid(),
         name: data.name,
         desc: data.desc,
         url: result.url,
         category: data.category,
-        icon: cat.icon,
-        color: cat.color,
-        tags: result.tags
-      }, { visits: 0, lastUsed: null, favorite: false }));
+        tags: result.tags,
+        icon: { source: 'builtin', symbol: safeIcon(cat.icon), url: '', imageId: '' },
+        color: safeColor(cat.color),
+        order: maxOrder + 100,
+        visits: 0,
+        lastUsed: null,
+        favorite: false,
+        createdAt: now,
+        updatedAt: now
+      });
     }
 
-    persist();
+    if (!commit(candidate)) { return; }
+
     closeDialog(els.siteDialog);
     editingId = null;
     renderAll();
@@ -778,6 +879,7 @@
 
   function openConfirm(site) {
     if (!els.confirmDialog) { return; }
+    if (readOnly) { notifyReadOnly(); return; }
     pendingDeleteId = site.id;
     els.confirmText.innerHTML = '删除「<strong>' + escapeHtml(site.name) + '</strong>」后，' +
       '它的使用次数、收藏和最近访问记录会一并清除，且无法恢复。';
@@ -786,16 +888,35 @@
   }
 
   function confirmDelete() {
-    var site = findSite(pendingDeleteId);
-    pendingDeleteId = null;
-    if (!site) { closeDialog(els.confirmDialog); return; }
+    if (readOnly) {
+      pendingDeleteId = null;
+      closeDialog(els.confirmDialog);
+      notifyReadOnly();
+      return;
+    }
 
-    var index = sites.indexOf(site);
-    if (index > -1) { sites.splice(index, 1); }
-    persist();
+    var victim = findSite(pendingDeleteId);
+    if (!victim) {
+      pendingDeleteId = null;
+      closeDialog(els.confirmDialog);
+      return;
+    }
+
+    var candidate = cloneDoc(doc);
+    var index = candidate ? candidate.sites.indexOf(findSiteIn(candidate.sites, victim.id)) : -1;
+    if (index < 0) {
+      pendingDeleteId = null;
+      closeDialog(els.confirmDialog);
+      return;
+    }
+
+    candidate.sites.splice(index, 1);
+    if (!commit(candidate)) { return; }
+
+    pendingDeleteId = null;
     closeDialog(els.confirmDialog);
     renderAll();
-    showToast('已删除「' + site.name + '」');
+    showToast('已删除「' + victim.name + '」');
   }
 
   function openDialog(dialog) {
@@ -888,6 +1009,13 @@
   function safeIcon(icon) {
     var text = String(icon || '');
     return /^i-[a-z0-9-]+$/.test(text) ? text : 'i-grid';
+  }
+
+  /** V3 的 icon 是对象；同时兼容旧的 symbol 字符串 */
+  function iconSymbol(site) {
+    var icon = site ? site.icon : null;
+    if (icon && typeof icon === 'object') { return safeIcon(icon.symbol); }
+    return safeIcon(icon);
   }
 
   function safeColor(color) {
