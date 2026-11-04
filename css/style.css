@@ -859,9 +859,7 @@ html.is-locked { overflow: hidden; }
   box-shadow: 0 32px 80px -30px rgba(17, 30, 66, .45);
 }
 .dialog::backdrop {
-  background: rgba(18, 26, 44, .42);
-  -webkit-backdrop-filter: blur(2px);
-  backdrop-filter: blur(2px);
+  background: rgba(18, 26, 44, .48);
 }
 .dialog[open] { animation: dialog-in .18s var(--ease); }
 
